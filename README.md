@@ -32,17 +32,18 @@ The system combines a high-performance C++ backend with a modern Python GUI fron
 ---
 
 # 🏗️ Architecture
-```
+
+```text
 ┌─────────────────────┐
 │ Python GUI          │
 │ (PyQt6)             │
 └──────────┬──────────┘
-│ JSON
+           │ JSON
 ┌──────────▼──────────┐
 │ boot.fxd            │
 │ C++ Backend         │
 └──────────┬──────────┘
-│
+           │
 ┌──────────▼──────────┐
 │ Linux Boot System   │
 │ /boot/efi           │
@@ -50,31 +51,33 @@ The system combines a high-performance C++ backend with a modern Python GUI fron
 │ /dev/sda (MBR)      │
 └─────────────────────┘
 ```
+
 ---
 
 # 📂 Project Structure
-```
+
+```text
 boot.fxd-MVP1.0.0/
 │
 ├── gui/
-│ └── gui.py
+│   └── gui.py
 │
 ├── include/
-│ ├── baseline.h
-│ ├── compare.h
-│ ├── hashing.h
-│ └── scanner.h
+│   ├── baseline.h
+│   ├── compare.h
+│   ├── hashing.h
+│   └── scanner.h
 │
 ├── src/
-│ ├── baseline.cpp
-│ ├── compare.cpp
-│ ├── hashing.cpp
-│ ├── main.cpp
-│ └── scanner.cpp
+│   ├── baseline.cpp
+│   ├── compare.cpp
+│   ├── hashing.cpp
+│   ├── main.cpp
+│   └── scanner.cpp
 │
 ├── output/
-│ ├── baseline.json
-│ └── result.json
+│   ├── baseline.json
+│   └── result.json
 │
 └── LICENSE
 ```
@@ -97,129 +100,145 @@ Tested on:
 
 ---
 
-🖥️ GUI Usage
----
+# 🖥️ GUI Usage
+
 Run GUI from project root:
-```
+
+```bash
 python3 gui/gui.py
 ```
+
 GUI Features:
 
-  Dark theme (default)
+- Dark theme (default)
+- Light theme toggle
+- Interactive dashboard
+- Integrity status display
+- Modern cybersecurity interface
 
-  Light theme toggle
-
-  Interactive dashboard
-
-  Integrity status display
-
-  Modern cybersecurity interface
-
-🔐 How It Works
 ---
+
+# 🔐 How It Works
+
 Boot.fxd scans and hashes critical boot components.
 
-UEFI Systems
+### UEFI Systems
 
 Scans:
-```
+
+```text
 /boot/efi/EFI/
 /boot/grub/
 /boot/grub2/
 ```
-BIOS Systems
+
+### BIOS Systems
 
 Scans:
-```
+
+```text
 MBR (/dev/sda)
 /boot/grub/
 /boot/grub2/
 ```
-Hashes are stored in baseline.json and compared during integrity checks.
 
-🧠 Threat Detection
+Hashes are stored in `baseline.json` and compared during integrity checks.
+
 ---
+
+# 🧠 Threat Detection
+
 Boot.fxd detects:
 
-• Bootkits
-• Rootkits modifying bootloader
-• GRUB tampering
-• EFI modification
-• MBR modification
-• Persistent boot malware
+- Bootkits
+- Rootkits modifying bootloader
+- GRUB tampering
+- EFI modification
+- MBR modification
+- Persistent boot malware
 
-⚡ Performance
 ---
-Typical scan time: < 1 second
-Memory usage: Very low
-CPU usage: Minimal
+
+# ⚡ Performance
+
+Typical scan time: **< 1 second**
+
+Memory usage: **Very low**
+
+CPU usage: **Minimal**
 
 Designed to be fast and lightweight.
 
-🛠️ Tech Stack
 ---
-Backend: 
 
-  C++17
+# 🛠️ Tech Stack
 
-  OpenSSL SHA-256
+### Backend
 
-  Linux filesystem APIs
+- C++17
+- OpenSSL SHA-256
+- Linux filesystem APIs
 
-Frontend:
+### Frontend
 
-  Python 3
+- Python 3
+- PyQt6
 
-  PyQt6
-
-🎯 Use Cases
 ---
-Boot integrity monitoring
 
-Rootkit detection
+# 🎯 Use Cases
 
-Security research
+- Boot integrity monitoring
+- Rootkit detection
+- Security research
+- Cybersecurity education
+- Malware analysis
 
-Cybersecurity education
-
-Malware analysis
-
-
-⚠️ Security Notes
 ---
+
+# ⚠️ Security Notes
+
 Requires root privileges to access:
 
-/dev/sda
-/boot
-/boot/efi
+- `/dev/sda`
+- `/boot`
+- `/boot/efi`
 
-Baseline should be created on trusted system.
+Baseline should be created on a trusted system.
 
-📜 License
 ---
+
+# 📜 License
+
 MIT License
 
-See LICENSE file for details.
+See `LICENSE` file for details.
 
-👨‍💻 Author
 ---
-Boot.fxd Boot Integrity Monitor
+
+# 👨‍💻 Authors
+
+**Boot.fxd — Boot Integrity Monitor**  
 Cybersecurity Integrity Monitoring Project
 
-⭐ Future Improvements
+### Team Members
+
+- **Shubh Kashyap**
+- **Prakhar Katare**
+
 ---
-Real-time monitoring
 
-TPM integration
+# ⭐ Future Improvements
 
-Secure baseline signing
+- Real-time monitoring
+- TPM integration
+- Secure baseline signing
+- Automatic alerts
+- Kernel-level monitoring
 
-Automatic alerts
-
-Kernel-level monitoring
-
-🛡️ Summary
 ---
+
+# 🛡️ Summary
 
 Boot.fxd provides a lightweight, fast, and secure way to verify boot integrity and detect boot-level persistence mechanisms.
 
