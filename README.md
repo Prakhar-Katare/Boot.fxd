@@ -1,123 +1,226 @@
-#include "hashing.h"
+# 🛡️ Boot.fxd — Boot Integrity Monitor
 
-#include <openssl/sha.h>
+![Platform](https://img.shields.io/badge/platform-Linux-blue)
+![Language](https://img.shields.io/badge/backend-C++17-orange)
+![Frontend](https://img.shields.io/badge/frontend-Python%20(PyQt6)-green)
+![Security](https://img.shields.io/badge/security-SHA256-red)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-#include <fstream>
-#include <iomanip>
-#include <sstream>
+Boot.fxd is a lightweight Boot Integrity Monitoring tool designed to detect unauthorized modifications to critical boot components such as EFI files, GRUB configuration, and the Master Boot Record (MBR).
 
-namespace bootfxd {
-namespace {
+It uses SHA-256 cryptographic hashing to create a trusted baseline and later verify system integrity.
 
-std::string toHexString(const unsigned char* digest, std::size_t length) {
-    std::ostringstream oss;
-    oss << std::hex << std::setfill('0');
+The system combines a high-performance C++ backend with a modern Python GUI frontend.
 
-    for (std::size_t i = 0; i < length; ++i) {
-        oss << std::setw(2) << static_cast<unsigned int>(digest[i]);
-    }
+---
 
-    return oss.str();
-}
+# 🚀 Features
 
-}  // namespace
+✔ Detects boot mode automatically (UEFI or BIOS)  
+✔ Hashes EFI bootloader files  
+✔ Hashes GRUB bootloader configuration  
+✔ Hashes MBR (BIOS systems)  
+✔ Baseline creation and integrity verification  
+✔ Detects modified boot files  
+✔ Detects added boot files  
+✔ Detects deleted boot files  
+✔ Fast and lightweight  
+✔ Secure SHA-256 hashing using OpenSSL  
+✔ Modern GUI with dark/light theme toggle  
+✔ Professional cybersecurity dashboard  
 
-std::string sha256Buffer(const std::vector<unsigned char>& data) {
-    if (data.empty()) {
-        return sha256Bytes(nullptr, 0);
-    }
-    return sha256Bytes(data.data(), data.size());
-}
+---
 
-std::string sha256Bytes(const unsigned char* data, std::size_t length) {
-    unsigned char digest[SHA256_DIGEST_LENGTH] = {0};
-    SHA256(data, length, digest);
-    return toHexString(digest, SHA256_DIGEST_LENGTH);
-}
+# 🏗️ Architecture
+```
+┌─────────────────────┐
+│ Python GUI          │
+│ (PyQt6)             │
+└──────────┬──────────┘
+│ JSON
+┌──────────▼──────────┐
+│ boot.fxd            │
+│ C++ Backend         │
+└──────────┬──────────┘
+│
+┌──────────▼──────────┐
+│ Linux Boot System   │
+│ /boot/efi           │
+│ /boot/grub          │
+│ /dev/sda (MBR)      │
+└─────────────────────┘
+```
+---
 
-bool sha256File(const std::filesystem::path& filePath,
-                std::string& outHash,
-                std::string& outError) {
-    std::ifstream in(filePath, std::ios::binary);
-    if (!in.is_open()) {
-        outError = "Failed to open file: " + filePath.string();
-        return false;
-    }
+# 📂 Project Structure
+```
+boot.fxd-MVP1.0.0/
+│
+├── gui/
+│ └── gui.py
+│
+├── include/
+│ ├── baseline.h
+│ ├── compare.h
+│ ├── hashing.h
+│ └── scanner.h
+│
+├── src/
+│ ├── baseline.cpp
+│ ├── compare.cpp
+│ ├── hashing.cpp
+│ ├── main.cpp
+│ └── scanner.cpp
+│
+├── output/
+│ ├── baseline.json
+│ └── result.json
+│
+└── LICENSE
+```
 
-    SHA256_CTX ctx;
-    if (SHA256_Init(&ctx) != 1) {
-        outError = "Failed to initialize SHA256 context for: " + filePath.string();
-        return false;
-    }
+---
 
-    std::vector<char> buffer(8192);
-    while (in.good()) {
-        in.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
-        const std::streamsize bytesRead = in.gcount();
+# ⚙️ Requirements
 
-        if (bytesRead > 0) {
-            if (SHA256_Update(&ctx, buffer.data(), static_cast<std::size_t>(bytesRead)) != 1) {
-                outError = "Failed to update SHA256 for: " + filePath.string();
-                return false;
-            }
-        }
-    }
+## System
 
-    if (!in.eof()) {
-        outError = "Failed while reading file: " + filePath.string();
-        return false;
-    }
+Linux (Ubuntu recommended)
 
-    unsigned char digest[SHA256_DIGEST_LENGTH] = {0};
-    if (SHA256_Final(digest, &ctx) != 1) {
-        outError = "Failed to finalize SHA256 for: " + filePath.string();
-        return false;
-    }
+Root privileges required for MBR scanning
 
-    outHash = toHexString(digest, SHA256_DIGEST_LENGTH);
-    outError.clear();
-    return true;
-}
+Tested on:
 
-bool readFirstBytes(const std::filesystem::path& filePath,
-                    std::size_t byteCount,
-                    std::vector<unsigned char>& outBytes,
-                    std::string& outError) {
-    outBytes.clear();
+- Ubuntu 22.04
+- Ubuntu 24.04
+- Ubuntu VM (VMware / VirtualBox)
 
-    std::ifstream in(filePath, std::ios::binary);
-    if (!in.is_open()) {
-        outError = "Failed to open file: " + filePath.string();
-        return false;
-    }
+---
 
-    outBytes.resize(byteCount);
-    in.read(reinterpret_cast<char*>(outBytes.data()), static_cast<std::streamsize>(byteCount));
-    const std::streamsize bytesRead = in.gcount();
+🖥️ GUI Usage
+---
+Run GUI from project root:
+```
+python3 gui/gui.py
+```
+GUI Features:
 
-    if (bytesRead < static_cast<std::streamsize>(byteCount)) {
-        outBytes.clear();
-        outError = "File/device smaller than requested bytes: " + filePath.string();
-        return false;
-    }
+  Dark theme (default)
 
-    outError.clear();
-    return true;
-}
+  Light theme toggle
 
-bool sha256Mbr(const std::filesystem::path& devicePath,
-               std::string& outHash,
-               std::string& outError) {
-    std::vector<unsigned char> mbrBytes;
-    constexpr std::size_t kMbrBytes = 512;
+  Interactive dashboard
 
-    if (!readFirstBytes(devicePath, kMbrBytes, mbrBytes, outError)) {
-        return false;
-    }
+  Integrity status display
 
-    outHash = sha256Buffer(mbrBytes);
-    outError.clear();
-    return true;
-}
+  Modern cybersecurity interface
 
-}  // namespace bootfxd
+🔐 How It Works
+---
+Boot.fxd scans and hashes critical boot components.
+
+UEFI Systems
+
+Scans:
+```
+/boot/efi/EFI/
+/boot/grub/
+/boot/grub2/
+```
+BIOS Systems
+
+Scans:
+```
+MBR (/dev/sda)
+/boot/grub/
+/boot/grub2/
+```
+Hashes are stored in baseline.json and compared during integrity checks.
+
+🧠 Threat Detection
+---
+Boot.fxd detects:
+
+• Bootkits
+• Rootkits modifying bootloader
+• GRUB tampering
+• EFI modification
+• MBR modification
+• Persistent boot malware
+
+⚡ Performance
+---
+Typical scan time: < 1 second
+Memory usage: Very low
+CPU usage: Minimal
+
+Designed to be fast and lightweight.
+
+🛠️ Tech Stack
+---
+Backend: 
+
+  C++17
+
+  OpenSSL SHA-256
+
+  Linux filesystem APIs
+
+Frontend:
+
+  Python 3
+
+  PyQt6
+
+🎯 Use Cases
+---
+Boot integrity monitoring
+
+Rootkit detection
+
+Security research
+
+Cybersecurity education
+
+Malware analysis
+
+
+⚠️ Security Notes
+---
+Requires root privileges to access:
+
+/dev/sda
+/boot
+/boot/efi
+
+Baseline should be created on trusted system.
+
+📜 License
+---
+MIT License
+
+See LICENSE file for details.
+
+👨‍💻 Author
+---
+Boot.fxd Boot Integrity Monitor
+Cybersecurity Integrity Monitoring Project
+
+⭐ Future Improvements
+---
+Real-time monitoring
+
+TPM integration
+
+Secure baseline signing
+
+Automatic alerts
+
+Kernel-level monitoring
+
+🛡️ Summary
+---
+
+Boot.fxd provides a lightweight, fast, and secure way to verify boot integrity and detect boot-level persistence mechanisms.
+
+Designed for cybersecurity, research, and integrity monitoring.
